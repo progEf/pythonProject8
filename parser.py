@@ -44,21 +44,15 @@ def parsing(url, file_name) -> None:
     driver.set_window_size(1900, 1000)
 
     driver.get(url)
-    try:
-        cookies = pickle.load(open("cookies.pkl", "rb"))
-        for cookie in cookies:
-            driver.add_cookie(cookie)
 
-    except:
-        pass
-
+    with open(f'{PATH_name}/cookies2.pkl', 'rb') as file:
+        cookies = pickle.load(file)
+    for cookie in cookies:
+        driver.add_cookie(cookie)
     time.sleep(4)
-
-    pickle.dump(driver.get_cookies(), open("cookies.pkl", "wb"))
-
+    driver.refresh()
     now = time.time()
-    n =0
-
+    n = 0
     while int(time.time() - now) <= pars_time * 60:
         n += 1
 
@@ -80,13 +74,16 @@ def parsing(url, file_name) -> None:
                     profile_url_list.append(BlockUrlUser)
             except:
                 pass
-        driver.find_element(By.XPATH, f"(//a[@data-marker='pagination-button/nextPage'])").click()
+        try:
+            driver.find_element(By.XPATH, f"(//a[@data-marker='pagination-button/nextPage'])").click()
 
-        print(rating_list)
-        print(products_url_list)
-        print(profile_url_list)
-        print('-------')
-
+            print(rating_list)
+            print(products_url_list)
+            print(profile_url_list)
+            print('-------')
+        except:
+            print('Скрипт достиг максимальное кол-во страниц')
+            break
 
 
 
@@ -97,7 +94,7 @@ def parsing(url, file_name) -> None:
          'Ссылка на профиль продавца': profile_url_list}
     )
 
-    df.to_excel(f'./files/{file_name}.xlsx', index=False)
+    df.to_excel(f'{PATH_name}/files/{file_name}.xlsx', index=False)
     driver.quit()
 
 
@@ -108,8 +105,9 @@ if __name__ == '__main__':
     name_list = []
     args = []
 
-    print('Рейтинг')
+    PATH_name = input("Укажите папку: ")
 
+    print('Рейтинг')
     rating_from = float(input('От: '))
     rating_to = float(input('До: '))
 

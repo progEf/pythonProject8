@@ -7,100 +7,37 @@ import pickle
 
 import pandas as pd
 
+PATH_name = input("Укажите папку: ")
 
 item_url_list = []
 profile_url_list = []
 
-options = webdriver.ChromeOptions()
 
-options.add_argument("--disable-blink-features=AutomationControlled")
+
+rating_list = []
+products_url_list = []
+profile_url_list = []
+
+options = webdriver.FirefoxOptions()
+options.set_preference("disable-blink-features", "AutomationControlled")
 options.add_argument('--log-level=3')
+# proxy = f"172.67.70.229:80"
+# options.add_argument('--proxy-server=%s' % proxy)
+options.set_preference("network.proxy.type", 1)
+options.set_preference("network.proxy.http", "117.160.250.132")
+options.set_preference("network.proxy.http_port", 8899)
 
+ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 YaBrowser/24.1.0.0 Safari/537.36"
+options.add_argument(f"user-agent={ua}")
 
-def parsing(url) -> None:
+driver = webdriver.Firefox(options=options)
 
-    global profile_url_list
-
-    # driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver", options=options)
-    driver = webdriver.Chrome("./chromedriver.exe", options=options)
-
-    driver.get(url)
-
-    n=0
-
-    try:
-        cookies = pickle.load(open("cookies.pkl", "rb"))
-        for cookie in cookies:
-            driver.add_cookie(cookie)
-
-    except:
-
-        pass
-
-    time.sleep(1)
-
-    pickle.dump(driver.get_cookies(), open("cookies.pkl", "wb"))
-
-    time.sleep(1)
-
-    driver.refresh()
-
-
-    while True:
-        try:
-            n+=1
-
-            item_url = driver.find_element(By.XPATH, f"(//a[@class='link-link-MbQDP link-design-default-_nSbv title-root-zZCwT body-title-drnL0 title-root_maxHeight-X6PsH'])[{n}]").get_attribute("href")
-
-            item_url_list.append(item_url)
-
-        except:
-            try:
-                driver.find_element(By.XPATH, f"(//a[@class='Tabs-nav-tab-link-ooeMr'])").click()
-
-                n = 0
-
-                while True:
-                    try:
-                        n+=1
-
-                        item_url = driver.find_element(By.XPATH, f"(//a[@class='title-root-zZCwT body-title-drnL0 title-root_maxHeight-X6PsH text-text-LurtD text-size-s-BxGpL text-bold-SinUO'])[{n}]").get_attribute("href")
-
-                        item_url_list.append(item_url)
-
-                    except:
-                        break
-
-            except:
-                break
-
-            break
-
-    subs = '/avtomobili/'
- 
-    res = [i for i in item_url_list if subs in i]
-
-    if len(res) >= 2:
-        profile_url_list.append(url)
-
-    driver.quit()
-
-
-if __name__ == '__main__':
-
-    file_name = input('Название файла: ')
-
-    excel_data_df = pd.read_excel(f'{file_name}.xlsx', sheet_name='Sheet1')
-
-    excel_data_df = excel_data_df['Ссылка на профиль продавца'].tolist()
-
-    for i, url_ in enumerate(excel_data_df):
-
-        parsing(excel_data_df[i])
-        time.sleep(2)
-
-    df = pd.DataFrame(
-            {'Ссылка на профиль продавца': profile_url_list}
-            )
-
-    df.to_excel(f'./{file_name}_cars.xlsx', index=False)
+driver.set_window_size(1900, 1000)
+url = 'https://www.avito.ru/tver/avtomobili/haval-ASgBAgICAUTgtg2umCg?cd=1&radius=200&searchRadius=200'
+driver.get(url)
+a = input('Нажмите любую клавишу на клавиатуре!!! Для завершение скрипта.')
+driver.refresh()
+cookies = driver.get_cookies()
+with open(f'{PATH_name}/files/cookies2.pkl', 'wb') as file:
+    pickle.dump(cookies, file)
+driver.quit()
